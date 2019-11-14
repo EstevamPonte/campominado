@@ -1,102 +1,97 @@
 import random, time, copy
 
-
-
-
 class CampoMinado:
     
     def __init__(self, num_bomb):
+        self.num_bomb = num_bomb
         self.lista_bombas = []
-        self.__gera_lista_bombas(num_bomb)
+        self.__gera_lista_bombas()
+        self.inicializar()
 
-    def __gera_lista_bombas(self, num_bomb):
+    def __gera_lista_bombas(self):
         
-        while len(self.lista_bombas) < num_bomb:
-            r = random.randint(0, 8)
-            c = random.randint(0, 8)
-            if (r,c) not in self.lista_bombas:
-                self.lista_bombas.append((r,c))        
+        while len(self.lista_bombas) < self.num_bomb:
+            linha = random.randint(0, 8)
+            coluna = random.randint(0, 8)
+            if (linha,coluna) not in self.lista_bombas:
+                self.lista_bombas.append((linha,coluna))        
 
-    def get_lista_bomb(self):
+    def __get_lista_bomb(self):
         return self.lista_bombas
         self.lista_bombas.clear()
 
-    def l(self, r, c, b):
-        return b[r][c]
+    def inicializar(self):
 
-    def updateValues(self, rn, c, b):
+        self.__gera_lista_bombas()
+
+        #A solução da grade.
+        self.gabarito = [[0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], 
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+        self.__espalhar_bombas_gabarito()
+        self.__calcular_bombas_posicao_gabarito()
+        self.__print_gabarito()
+
+    def __print_gabarito(self):
+        for linha in self.gabarito:
+            print(linha)
+
+    def __espalhar_bombas_gabarito(self):
+        for item in self.__get_lista_bomb():
+            self.gabarito[item[0]][item[1]] = '*'
+
+    def __calcular_bombas_posicao_gabarito(self):
+        for linha in range (0, 9):
+            for coluna in range (0, 9):
+                value = self.filtro(linha, coluna)
+                # value = l(r, c, b)
+                if value == '*':
+                    self.__updateValues(linha, coluna)
+
+    def __updateValues(self, linha, coluna):
         #Linha de cima.
-        if rn-1 > -1:
-            r = b[rn-1]
+        if linha-1 > -1:
+            r = self.gabarito[linha-1]
             
-            if c-1 > -1:
-                if not r[c-1] == '*':
-                    r[c-1] += 1
+            if coluna-1 > -1:
+                if not r[coluna-1] == '*':
+                    r[coluna-1] += 1
 
-            if not r[c] == '*':
-                r[c] += 1
+            if not r[coluna] == '*':
+                r[coluna] += 1
 
-            if 9 > c+1:
-                if not r[c+1] == '*':
-                    r[c+1] += 1
+            if 9 > coluna+1:
+                if not r[coluna+1] == '*':
+                    r[coluna+1] += 1
 
         #Mesma linha (A do meio).    
-        r = b[rn]
+        r = self.gabarito[linha]
 
-        if c-1 > -1:
-            if not r[c-1] == '*':
-                r[c-1] += 1
+        if coluna-1 > -1:
+            if not r[coluna-1] == '*':
+                r[coluna-1] += 1
 
-        if 9 > c+1:
-            if not r[c+1] == '*':
-                r[c+1] += 1
+        if 9 > coluna+1:
+            if not r[coluna+1] == '*':
+                r[coluna+1] += 1
 
         #Linha de baixo.
-        if 9 > rn+1:
-            r = b[rn+1]
+        if 9 > linha+1:
+            r = self.gabarito[linha+1]
 
-            if c-1 > -1:
-                if not r[c-1] == '*':
-                    r[c-1] += 1
+            if coluna-1 > -1:
+                if not r[coluna-1] == '*':
+                    r[coluna-1] += 1
 
-            if not r[c] == '*':
-                r[c] += 1
+            if not r[coluna] == '*':
+                r[coluna] += 1
 
-            if 9 > c+1:
-                if not r[c+1] == '*':
-                    r[c+1] += 1
+            if 9 > coluna+1:
+                if not r[coluna+1] == '*':
+                    r[coluna+1] += 1
     
-    def zeroProcedure(self, r, c, k, b):
-        #Linha de cima
-        if r-1 > -1:
-            row = k[r-1]
-            if c-1 > -1: row[c-1] = self.l(r-1, c-1, b)
-            row[c] = self.l(r-1, c, b)
-            if 9 > c+1: row[c+1] = self.l(r-1, c+1, b)
-
-        #Mesma linha
-        row = k[r]
-        if c-1 > -1: row[c-1] = self.l(r, c-1, b)
-        if 9 > c+1: row[c+1] = self.l(r, c+1, b)
-
-        #Linha de baixo
-        if 9 > r+1:
-            row = k[r+1]
-            if c-1 > -1: row[c-1] = self.l(r+1, c-1, b)
-            row[c] = self.l(r+1, c, b)
-            if 9 > c+1: row[c+1] = self.l(r+1, c+1, b)
-    def checkZeros(self, k, b, r, c):
-        oldGrid = copy.deepcopy(k)
-        self.zeroProcedure(r, c, k, b)
-        if oldGrid == k:
-            return
-        while True:
-            oldGrid = copy.deepcopy(k)
-            for x in range (9):
-                for y in range (9):
-                    if self.l(x, y, k) == 0:
-                        self.zeroProcedure(x, y, k, b)
-            if oldGrid == k:
-                return
+    def filtro(self, linha, coluna):
+        return self.gabarito[linha][coluna]
+    
     
     
