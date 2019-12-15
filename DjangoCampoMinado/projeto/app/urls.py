@@ -1,6 +1,8 @@
-from django.conf.urls import include, url
-from . import views
+from django.urls import path
+
+from .views import iniciar_jogo, post_list
 
 urlpatterns = [
-    url(r'teste/$', views.post_list),
+    path('start/', iniciar_jogo, name='iniciar_game'),
+    path('jogadas/', post_list, name='jogar_jogo'),
 ]
